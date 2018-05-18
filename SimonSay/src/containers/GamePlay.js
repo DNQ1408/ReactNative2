@@ -54,18 +54,21 @@ class GamePlay extends Component {
         buttonDisabled: true
       },
       () => {
-        this._flashButton(0);
+        setTimeout(() => { this._flashButton(0) }, 1000);
       }
     );
   }
 
   _playsound = index => {
-    this.state.sound[index].stop(() => this.state.sound[index].play());  
-    console.log('Playing Sound', index);
+    if (index !== undefined) {
+      this.state.sound[index].stop(() => this.state.sound[index].play());  
+      console.log('Playing Sound', index);
+    }
   }
 
   _flashButton = index => {
-    this._playsound(index);
+    console.log(index, this.state.requirement[index]);
+    this._playsound(this.state.requirement[index]);
     index < this.state.requirement.length
     ? Animated.sequence([
       Animated.timing(                 
