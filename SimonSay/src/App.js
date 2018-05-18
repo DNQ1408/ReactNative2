@@ -5,9 +5,8 @@
  */
 
 import React, { Component } from "react";
-import { Platform, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
-import ColorButton from "./ColorButton";
 import GamePlay from "./containers/GamePlay";
 import GameOver from "./containers/GameOver";
 import StyleDemo from "./containers/StyleDemo";
@@ -29,24 +28,22 @@ const Text2 = props => (
 // Class component
 export default class App extends Component {
   state = {
-    isPlaying: true,
-    score: 0,
+    isPlaying: true
   };
 
-  _setCondition = (score) => {
+  _onGameOver = score =>
     this.setState({
-      isPlaying: !this.state.isPlaying,
-      score : score,
-    })
-  }
+      isPlaying: false,
+      score
+    });
 
+  _onReplay = () => this.setState({ isPlaying: true });
 
   render() {
-    
-    return (
-    this.state.isPlaying
-      ? <GamePlay _setCondition={this._setCondition}/> 
-      : <GameOver _setCondition={this._setCondition} finalScore = {this.state.score}/>
+    return this.state.isPlaying ? (
+      <GamePlay onGameOver={this._onGameOver} />
+    ) : (
+      <GameOver score={this.state.score} onReplay={this._onReplay} />
     );
   }
 }

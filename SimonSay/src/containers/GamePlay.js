@@ -1,119 +1,138 @@
-import React, { Component } from 'react';
+import React, { Component } from "react";
 import {
-    StyleSheet,
-    Text,
-    View,
-    Button
-} from 'react-native';
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+  Button,
+  Dimensions,
+  Animated
+} from "react-native";
 
-import StyleDemo from './StyleDemo'
-import ColorButton from '../ColorButton'
+import Sound from 'react-native-sound';
+
+import ColorButton from "../components/ColorButton";
 
 class GamePlay extends Component {
-    state = {
-        colors: ["#8FB8DE", "#9A94BC", "#9B5094", "#6A605C"],
-        requirement: [],
+  state = {
+    colors: ["#8FB8DE", "#9A94BC", "#9B5094", "#6A605C"],
+    requirement: [],
+    answers: [],
+    opacity: [
+      new Animated.Value(1),
+      new Animated.Value(1),
+      new Animated.Value(1),
+      new Animated.Value(1)
+      ],
+    buttonDisabled : false,
+    sound: [
+      new Sound("../../sounds/pling1.mp3", Sound.MAIN_BUNDLE),
+      new Sound("../../sounds/pling2.mp3", Sound.MAIN_BUNDLE),
+      new Sound("../../sounds/pling3.mp3", Sound.MAIN_BUNDLE),
+      new Sound("../../sounds/pling4.mp3", Sound.MAIN_BUNDLE)      
+    ]
+  };  
+
+  componentDidMount() {
+    Sound.setCategory('Playback');
+    this._increaseDifficulty();
+  }
+
+  _increaseDifficulty = () => {
+    this.setState(
+      {
+        requirement: this.state.requirement.concat(Math.floor(Math.random() * 4)),
         answers: [],
-        isPlaying: true,
-    };
+        buttonDisabled: true
+      },
+      () => {
+        this._flashButton(0);
+      }
+    );
+  }
 
-    componentDidMount() {
-        this._createRandomRequirement();
-    }
+  _flashButton = index => {
+    this.state.sound[index].stop(() => this.state.sound[index].play());
+    index < this.state.requirement.length
+    ? Animated.sequence([
+      Animated.timing(                 
+        this.state.opacity[this.state.requirement[index]],          
+        {
+          toValue: 0,                 
+          duration: 250,            
+        }),
+        Animated.delay(250),
+        Animated.timing(                 
+          this.state.opacity[this.state.requirement[index]],          
+          {
+            toValue: 1,                 
+            duration: 250,            
+          }),
+    ]).start(() => this._flashButton(index + 1))
+    : this.setState({ buttonDisabled: false }); 
+  }
 
-    _createRandomRequirement = () =>
-        this.setState({
-            requirement: [Math.floor(Math.random() * 4)],
-            answers: []
-        });
+  _onButtonPressed = id => {
+    this.state.sound[id].stop(() => this.state.sound[id].play());
+    id === this.state.requirement[this.state.answers.length]
+      ? this._progress(this.state.answers.concat(id))
+      : this.props.onGameOver(this.state.requirement.length - 1);
+  };
 
-    _nextRequirement = id => {
-        this._clearAnswers(id);
-    }
-    _checkAnswerCorrect = id => {
-        id == this.state.requirement[this.state.answers.length]
-            ? this._nextRequirement(id)
-            : this._gameOver();
-    }
-    _nextInput = id => {
-        this._addAnswer(id);
-    }
-    _addAnswer = id => {
-        this.setState({
-            answers: this.state.answers.concat(id),
-        });
-    }
-    _clearAnswers = id => {
-        this.setState(
+  _progress = answers => {
+    answers.length === this.state.requirement.length
+      ? this._increaseDifficulty()
+      : this.setState({ answers });
+  };
+
+  render() {
+    const buttons = this.state.colors.map((color, index) => (
+      <ColorButton
+        key={index}
+        onButtonPressed={this._onButtonPressed}
+        id={index}
+        bgColor={color}
+        opacity={this.state.opacity[index]}
+        disabled = {this.state.buttonDisabled}
+      />
+    ));
+    const { width, height } = Dimensions.get("window");
+
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}
+        >Score: {this.state.requirement.length - 1}</Text>
+        <Text>{this.state.requirement}</Text>
+        <View
+          style={[
+            styles.gameBoard,
             {
-                answers: [],
-                requirement: this.state.requirement.concat(Math.floor(Math.random() * 4)),
-            },
-        );
-    };
-
-    _checkAnswerLength = id => {
-        this.state.answers.length == this.state.requirement.length - 1
-            ? this._checkAnswerCorrect(id)
-            : this._nextInput(id);
-    }
-
-    _onButtonPressed = id => {
-        this._checkAnswerLength(id);
-    };
-
-    _gameOver = () => {
-        this.props.state.isPlaying = false;
-        this.props.setCondition(this.state.requirement.length - 1)
-    }
-
-    render() {
-        const buttons = this.state.colors.map((color, index) => (
-            <ColorButton
-                key={index}
-                onButtonPressed={this._onButtonPressed}
-                id={index}
-                bgColor={color}
-            />
-        ));
-        return (
-            <View style={styles.bigContainer}>
-                <Text>GamePlay Scene</Text>
-                <Text>Requirement: {this.state.requirement}</Text>
-                <Text>Answers: {this.state.answers}</Text>
-                <View style={styles.buttonContainer}>
-                    {buttons}
-                </View>
-            </View>
-        );
-    }
+              width: Math.min(width, height),
+              height: Math.min(width, height)
+            }
+          ]}
+        >
+          {buttons}
+        </View>
+      </View>
+    );
+  }
 }
 
 const styles = StyleSheet.create({
-    bigContainer: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#F5FCFF"
-    },
-    playContainer: {
-        width: "70%",
-        height: "70%",
-        flexWrap: "wrap",
-        flexDirection: "row",
-        justifyContent: "center",
-        alignContent: "center",
-        marginTop: 20,
-    },
-
-    buttonContainer: {
-        width: "90%",
-        height: "90%",
-        flexWrap: "wrap",
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginTop: 20,
-    },
-})
+  container: {
+    flex: 1,
+    marginTop: 20,
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  gameBoard: {
+    flexDirection: "row",
+    flexWrap: "wrap"
+  },
+  title: {
+    fontSize: 40
+  }
+});
 
 export default GamePlay;
