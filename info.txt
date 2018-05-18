@@ -1,2 +1,2 @@
-Name : Đào Đức Hòa
-Age : 19
+﻿Name: Đào Đức Hòa
+Age: 19
