@@ -26,10 +26,18 @@ class GamePlay extends Component {
       ],
     buttonDisabled : false,
     sound: [
-      new Sound("../../sounds/pling1.mp3", Sound.MAIN_BUNDLE),
-      new Sound("../../sounds/pling2.mp3", Sound.MAIN_BUNDLE),
-      new Sound("../../sounds/pling3.mp3", Sound.MAIN_BUNDLE),
-      new Sound("../../sounds/pling4.mp3", Sound.MAIN_BUNDLE)      
+    new Sound('pling1.mp3', Sound.MAIN_BUNDLE, (erro) => {
+      if (erro) {console.log('sound 1 erro', erro)}
+    }),
+    new Sound('pling2.mp3', Sound.MAIN_BUNDLE, (erro) => {
+      if (erro) {console.log('sound 2 erro', erro)}        
+    }),
+    new Sound('pling3.mp3', Sound.MAIN_BUNDLE, (erro) => {
+      if (erro) {console.log('sound 3 erro', erro)} 
+    }),
+    new Sound('pling4.mp3', Sound.MAIN_BUNDLE, (erro) => {
+      if (erro) {console.log('sound 4 erro', erro)}        
+    })
     ]
   };  
 
@@ -51,8 +59,13 @@ class GamePlay extends Component {
     );
   }
 
+  _playsound = index => {
+    this.state.sound[index].stop(() => this.state.sound[index].play());  
+    console.log('Playing Sound', index);
+  }
+
   _flashButton = index => {
-    this.state.sound[index].stop(() => this.state.sound[index].play());
+    this._playsound(index);
     index < this.state.requirement.length
     ? Animated.sequence([
       Animated.timing(                 
@@ -73,7 +86,7 @@ class GamePlay extends Component {
   }
 
   _onButtonPressed = id => {
-    this.state.sound[id].stop(() => this.state.sound[id].play());
+    this._playsound(id);
     id === this.state.requirement[this.state.answers.length]
       ? this._progress(this.state.answers.concat(id))
       : this.props.onGameOver(this.state.requirement.length - 1);
