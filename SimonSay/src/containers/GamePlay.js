@@ -6,7 +6,7 @@ import {
   View,
   Button,
   Dimensions,
-  Animated
+  Animated  
 } from "react-native";
 
 import Sound from 'react-native-sound';
